@@ -87,6 +87,7 @@ typedef struct rtree_s
 
 extern int opt_quiet;
 extern int opt_precision;
+extern int opt_svg_showlegend;
 extern char * opt_treefile;
 extern char * opt_identical;
 extern char * opt_outfile;
@@ -107,6 +108,11 @@ extern long opt_extract_rsubtree;
 extern long opt_svg_width;
 extern long opt_svg_fontsize;
 extern long opt_svg_tipspace;
+extern long opt_svg_marginleft;
+extern long opt_svg_marginright;
+extern long opt_svg_margintop;
+extern long opt_svg_marginbottom;
+extern long opt_svg_inner_radius;
 extern double opt_svg_legend_ratio;
 
 /* common data */

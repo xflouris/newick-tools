@@ -40,6 +40,8 @@ char * opt_prune_tips;
 char * opt_root;
 char * opt_induce_subtree;
 int opt_quiet;
+int opt_precision;
+int opt_svg_showlegend;
 long opt_help;
 long opt_version;
 long opt_treeshow;
@@ -54,9 +56,12 @@ long opt_extract_rsubtree;
 long opt_svg_width;
 long opt_svg_fontsize;
 long opt_svg_tipspace;
+long opt_svg_marginleft;
+long opt_svg_marginright;
+long opt_svg_margintop;
+long opt_svg_marginbottom;
+long opt_svg_inner_radius;
 double opt_svg_legend_ratio;
-int opt_precision;
-
 
 static struct option long_options[] =
 {
@@ -82,7 +87,13 @@ static struct option long_options[] =
   {"svg_fontsize",       required_argument, 0, 0 },  /* 19 */
   {"svg_tipspacing",     required_argument, 0, 0 },  /* 20 */
   {"svg_legend_ratio",   required_argument, 0, 0 },  /* 21 */
-  {"precision",          required_argument, 0, 0 },  /* 22 */
+  {"svg_nolegend",       no_argument,       0, 0 },  /* 22 */
+  {"svg_marginleft",     required_argument, 0, 0 },  /* 23 */
+  {"svg_marginright",    required_argument, 0, 0 },  /* 24 */
+  {"svg_margintop",      required_argument, 0, 0 },  /* 25 */
+  {"svg_marginbottom",   required_argument, 0, 0 },  /* 26 */
+  {"svg_inner_radius",   required_argument, 0, 0 },  /* 27 */
+  {"precision",          required_argument, 0, 0 },  /* 28 */
   { 0, 0, 0, 0 }
 };
 
@@ -118,6 +129,11 @@ void args_init(int argc, char ** argv)
   opt_svg_tipspace = 20;
   opt_svg_legend_ratio = 0.1;
   opt_precision = 7;
+  opt_svg_showlegend = 1;
+  opt_svg_marginleft = 20;
+  opt_svg_marginright = 20;
+  opt_svg_margintop = 20;
+  opt_svg_marginbottom = 20;
 
   while ((c = getopt_long_only(argc, argv, "", long_options, &option_index)) == 0)
   {
@@ -201,11 +217,11 @@ void args_init(int argc, char ** argv)
         break;
 
       case 19:
-        opt_svg_fontsize = atoi(optarg);
+        opt_svg_fontsize = atol(optarg);
         break;
 
       case 20:
-        opt_svg_tipspace = atoi(optarg);
+        opt_svg_tipspace = atol(optarg);
         break;
 
       case 21:
@@ -213,6 +229,30 @@ void args_init(int argc, char ** argv)
         break;
       
       case 22:
+        opt_svg_showlegend = 0;
+        break;
+
+      case 23:
+        opt_svg_marginleft = atol(optarg);
+        break;
+
+      case 24:
+        opt_svg_marginright = atol(optarg);
+        break;
+
+      case 25:
+        opt_svg_margintop = atol(optarg);
+        break;
+
+      case 26:
+        opt_svg_marginbottom = atol(optarg);
+        break;
+
+      case 27:
+        opt_svg_inner_radius = atol(optarg);
+        break;
+
+      case 28:
         opt_precision = atoi(optarg);
         break;
 
