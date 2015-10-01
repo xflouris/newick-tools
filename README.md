@@ -52,7 +52,6 @@ Options for binary trees:
 * `--extract_tips`
 * `--extract_ltips`
 * `--extract_rtips`
-* `--prune_tips`
 * `--svg`
 * `--induce_subtree`
 * `--svg_legend_ratio`
@@ -61,6 +60,7 @@ Options for unrooted trees:
 * `--root`
 
 Options for all tree types:
+* `--prune_tips`
 * `--tree_show`
 
 Options for visualization:
