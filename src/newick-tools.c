@@ -289,9 +289,15 @@ void args_init(int argc, char ** argv)
 
   /* check for number of independent commands selected */
   if (opt_version)
+  {
+    mand_options = mandatory_options_count;
     commands++;
+  }
   if (opt_help)
+  {
+    mand_options = mandatory_options_count;
     commands++;
+  }
   if (opt_lca_left)
     commands++;
   if (opt_lca_right)
