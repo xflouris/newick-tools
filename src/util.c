@@ -146,3 +146,21 @@ FILE * xopen(const char * filename, const char * mode)
 
   return out;
 }
+
+void shuffle(void * array, size_t n, size_t size)
+{
+  size_t i;
+  char tmp[size];
+
+  if (n <= 1) return;
+
+  for (i = 0; i < n; ++i)
+  {
+    size_t rnd = (size_t)rand();
+    size_t j = i + rnd / (RAND_MAX / (n-i) + 1);
+
+    memcpy(tmp, array + j*size, size);
+    memcpy(array + j*size, array + i*size, size);
+    memcpy(array + i*size, tmp, size);
+  }
+}

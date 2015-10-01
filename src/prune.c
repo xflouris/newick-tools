@@ -82,11 +82,7 @@ static utree_t * utree_prune_taxa(utree_t ** prune_tips_list,
 
   for (i = 0; i < prune_tips_count; ++i)
   {
-    //printf("%s %d\n", prune_tips_list[i]->label, prune_tips_list[i]->height);
     utree_t * parent = prune_tips_list[i]->back;
-    //printf("parent: %d\n", parent->height);
-    //printf("parent->next->back %s %d\n", parent->next->back->label, parent->next->back->height);
-    //printf("parent->next->next->back %d\n", parent->next->next->back->height);
     
     utree_t * x = parent->next->back;
     utree_t * y = parent->next->next->back;
@@ -113,8 +109,22 @@ static utree_t * utree_prune_taxa(utree_t ** prune_tips_list,
 
   return root;
 }
-                        
+static utree_t ** utree_random_tiplist(utree_t * root, int tip_count)
+{
+  utree_t ** node_list = (utree_t **)xmalloc(tip_count * sizeof(utree_t *));
+  utree_query_tipnodes(root, node_list);
+  shuffle((void *)node_list, tip_count, sizeof(utree_t *));
+  return node_list;
+}
 
+static rtree_t ** rtree_random_tiplist(rtree_t * root)
+{
+  rtree_t ** node_list = (rtree_t **)xmalloc(root->leaves * sizeof(rtree_t *));
+  rtree_query_tipnodes(root, node_list);
+  shuffle((void *)node_list, root->leaves, sizeof(rtree_t *));
+  return node_list;
+}
+                        
 void cmd_prune_tips()
 {
   FILE * out;
@@ -141,10 +151,19 @@ void cmd_prune_tips()
     if (!opt_quiet)
       fprintf(stdout, "Loaded unrooted tree...\n");
 
-    utree_t ** prune_tips_list = utree_tipstring_nodes(utree,
-                                                       tip_count,
-                                                       opt_prune_tips,
-                                                       &prune_tips_count);
+    utree_t ** prune_tips_list;
+
+    if (opt_prune_random)
+    {
+      prune_tips_list = utree_random_tiplist(utree, tip_count);
+      prune_tips_count = opt_prune_random;
+    }
+    else
+      prune_tips_list = utree_tipstring_nodes(utree,
+                                              tip_count,
+                                              opt_prune_tips,
+                                              &prune_tips_count);
+      
     if (prune_tips_count+3 > (unsigned int)tip_count)
       fatal("Error, the resulting tree must have at least 3 taxa.");
 
@@ -159,9 +178,17 @@ void cmd_prune_tips()
   }
   else
   {
-    rtree_t ** prune_tips_list = rtree_tipstring_nodes(rtree,
-                                                       opt_prune_tips,
-                                                       &prune_tips_count);
+    rtree_t ** prune_tips_list;
+   
+    if (opt_prune_random)
+    {
+      prune_tips_list = rtree_random_tiplist(rtree);
+      prune_tips_count = opt_prune_random;
+    }
+    else
+      prune_tips_list = rtree_tipstring_nodes(rtree,
+                                              opt_prune_tips,
+                                              &prune_tips_count);
 
     prune_taxa(&rtree, prune_tips_list, prune_tips_count);
     free(prune_tips_list);

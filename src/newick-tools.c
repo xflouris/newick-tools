@@ -61,6 +61,8 @@ long opt_svg_marginright;
 long opt_svg_margintop;
 long opt_svg_marginbottom;
 long opt_svg_inner_radius;
+long opt_prune_random;
+long opt_seed;
 double opt_svg_legend_ratio;
 
 static struct option long_options[] =
@@ -94,6 +96,8 @@ static struct option long_options[] =
   {"svg_marginbottom",   required_argument, 0, 0 },  /* 26 */
   {"svg_inner_radius",   required_argument, 0, 0 },  /* 27 */
   {"precision",          required_argument, 0, 0 },  /* 28 */
+  {"prune_random",       required_argument, 0, 0 },  /* 29 */
+  {"seed",               required_argument, 0, 0 },  /* 30 */
   { 0, 0, 0, 0 }
 };
 
@@ -118,6 +122,7 @@ void args_init(int argc, char ** argv)
   opt_root = NULL;
   opt_outfile = NULL;
   opt_prune_tips = NULL;
+  opt_prune_random = 0;
   opt_extract_ltips = 0;
   opt_extract_rtips = 0;
   opt_extract_tips = 0;
@@ -125,6 +130,7 @@ void args_init(int argc, char ** argv)
   opt_extract_lsubtree = 0;
   opt_extract_rsubtree = 0;
   opt_precision = 7;
+  opt_seed = 0;
   opt_svg_width = 1920;
   opt_svg_fontsize = 12;
   opt_svg_tipspace = 20;
@@ -257,6 +263,14 @@ void args_init(int argc, char ** argv)
         opt_precision = atoi(optarg);
         break;
 
+      case 29:
+        opt_prune_random = atol(optarg);
+        break;
+
+      case 30:
+        opt_seed = atol(optarg);
+        break;
+
       default:
         fatal("Internal error in option parsing");
     }
@@ -293,6 +307,8 @@ void args_init(int argc, char ** argv)
   if (opt_extract_tips)
     commands++;
   if (opt_prune_tips)
+    commands++;
+  if (opt_prune_random)
     commands++;
   if (opt_svg)
     commands++;
@@ -333,6 +349,7 @@ void cmd_help()
           "  --version                      Display version information.\n"
           "  --quiet                        Only output warnings and fatal errors to stderr.\n"
           "  --precision                    Number of digits to display after decimal point.\n"
+          "  --seed INT                     Seed to initialize random number generator.\n"
           "Commnads for binary trees:\n"
           "  --lca_left                     Print  two  taxa whose LCA is the left child of\n"
           "                                 the root node.\n"
@@ -354,6 +371,7 @@ void cmd_help()
           "                                 is used.\n"
           "Commands for all tree types:\n"
           "  --prune_tips TAXA              Prune the comma-separated TAXA from the tree.\n"
+          "  --prune_random INT             Randomly prune the specified amount of taxa.\n"
           "  --tree_show                    Display an ASCII version of the tree.\n"
           "Options for visualization:\n"
           "  --svg_width INT                Width of SVG image in pixels (default: 1920).\n"
@@ -756,6 +774,8 @@ int main (int argc, char * argv[])
   getentirecommandline(argc, argv);
 
   args_init(argc, argv);
+  
+  srand(opt_seed);
 
   if (!opt_quiet)
     show_header();
@@ -788,7 +808,7 @@ int main (int argc, char * argv[])
   {
     cmd_extract_tips();
   }
-  else if (opt_prune_tips)
+  else if (opt_prune_tips || opt_prune_random)
   {
     cmd_prune_tips();
   }

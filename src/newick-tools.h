@@ -102,7 +102,9 @@ extern long opt_lca_right;
 extern long opt_extract_ltips;
 extern long opt_extract_rtips;
 extern long opt_extract_tips;
+extern long opt_prune_random;
 extern long opt_svg;
+extern long opt_seed;
 extern long opt_extract_lsubtree;
 extern long opt_extract_rsubtree;
 extern long opt_svg_width;
@@ -144,6 +146,7 @@ char * xstrndup(const char * s, size_t len);
 long getusec(void);
 void show_rusage();
 FILE * xopen(const char * filename, const char * mode);
+void shuffle(void * array, size_t n, size_t size);
 
 /* functions in newick-tools.c */
 
