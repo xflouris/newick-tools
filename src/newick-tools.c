@@ -50,9 +50,9 @@ long opt_lca_right;
 long opt_extract_ltips;
 long opt_extract_rtips;
 long opt_extract_tips;
-long opt_svg;
 long opt_extract_lsubtree;
 long opt_extract_rsubtree;
+long opt_svg;
 long opt_svg_width;
 long opt_svg_fontsize;
 long opt_svg_tipspace;
@@ -124,16 +124,17 @@ void args_init(int argc, char ** argv)
   opt_svg = 0;
   opt_extract_lsubtree = 0;
   opt_extract_rsubtree = 0;
+  opt_precision = 7;
   opt_svg_width = 1920;
   opt_svg_fontsize = 12;
   opt_svg_tipspace = 20;
   opt_svg_legend_ratio = 0.1;
-  opt_precision = 7;
   opt_svg_showlegend = 1;
   opt_svg_marginleft = 20;
   opt_svg_marginright = 20;
   opt_svg_margintop = 20;
   opt_svg_marginbottom = 20;
+  opt_svg_inner_radius = 0;
 
   while ((c = getopt_long_only(argc, argv, "", long_options, &option_index)) == 0)
   {
@@ -333,24 +334,40 @@ void cmd_help()
           "  --quiet                        Only output warnings and fatal errors to stderr.\n"
           "  --precision                    Number of digits to display after decimal point.\n"
           "Commnads for binary trees:\n"
-          "  --lca_left                     Get two taxa whose LCA is the left child of the root.\n"
-          "  --lca_right                    Get two taxa whose LCA is the right child of the root.\n"
-          "  --identical FILENAME           Check whether the tree specified by FILENAME is identical to the --tree_file.\n"
+          "  --lca_left                     Print  two  taxa whose LCA is the left child of\n"
+          "                                 the root node.\n"
+          "  --lca_right                    Print  two taxa whose LCA is the right child of\n"
+          "                                 the root node.\n"
+          "  --identical FILENAME           Check whether the tree specified by FILENAME is\n"
+          "                                 identical to the --tree_file."
           "  --extract_tips                 Display all tip labels.\n"
           "  --extract_ltips                Display all tip label of left subtree.\n"
           "  --extract_rtips                Display all tip label of right subtree.\n"
-          "  --prune_tips TAXA              Prune the comma-separated TAXA from the binary rooted tree.\n"
-          "  --svg                          Create an SVG of the tree.\n"
-          "  --induce_subtree TAXA          Construct an induced tree from the specified taxa.\n"
+          "  --svg                          Create an SVG image of the tree.\n"
+          "  --induce_subtree TAXA          Construct induced tree from specified taxa.\n"
           "Commands for unrooted trees:\n"
-          "  --root                         Root the tree at the specific outgroup.\n"
+          "  --root TAXA                    Root  the  tree  on  the  outgroup specified by\n"
+          "                                 TAXA. The edge connecting the outgroup (must be\n"
+          "                                 a  subtree)  with the rest of the tree is split\n"
+          "                                 into  two edges and a new root node is created.\n"
+          "                                 If  TAXA  is empty, then the longest tip-branch\n"
+          "                                 is used.\n"
           "Commands for all tree types:\n"
+          "  --prune_tips TAXA              Prune the comma-separated TAXA from the tree.\n"
           "  --tree_show                    Display an ASCII version of the tree.\n"
           "Options for visualization:\n"
-          "  --svg_width NUMBER             Width of the resulting SVG image in pixels (default: 1920).\n"
-          "  --svg_fontsize NUMBER          Size of font in SVG image. (default: 12)\n"
-          "  --svg_tipspacing NUMBER        Vertical space between taxa in SVG image (default: 20).\n"
+          "  --svg_width INT                Width of SVG image in pixels (default: 1920).\n"
+          "  --svg_fontsize INT             Font size of SVG image. (default: 12)\n"
+          "  --svg_tipspacing INT           Vertical   distance  (in  pixels)  between  two\n"
+          "                                 consencutive  taxa  in  the SVG image (default:\n"
+          "                                 20).\n"
           "  --svg_legend_ratio <0..1>      Ratio of the total tree length to be displayed as legend line.\n"
+          "  --svg_nolegend                 Do not show the legend.\n"
+          "  --svg_marginleft INT           Left margin in pixels (default: 20).\n"
+          "  --svg_marginright INT          Right margin in pixels (default: 20).\n"
+          "  --svg_margintop INT            Top margin in pixels (default: 20).\n"
+          "  --svg_marginbottom INT         Bottom margin in pixels (default: 20).\n"
+          "  --svg_inner_radius             Radius of inner nodes in pixels (default: 0).\n"
           "Input and output options:\n"
           "  --tree_file FILENAME           tree file in newick format.\n"
           "  --output_file FILENAME         Optional output file name. If not specified, output is displayed on terminal.\n"
@@ -435,9 +452,6 @@ void cmd_root(void)
   /* attempt to open output file */
   out = opt_outfile ?
           xopen(opt_outfile,"w") : stdout;
-
-  if (!opt_quiet)
-    fprintf(stdout, "Parsing tree file...\n");
 
   /* parse tree */
   if (!opt_quiet)

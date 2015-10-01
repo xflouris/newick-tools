@@ -490,3 +490,80 @@ rtree_t * utree_convert_rtree(utree_t * root, int tip_count, char * outgroup_lis
 }
 
 
+utree_t ** utree_tipstring_nodes(utree_t * root,
+                                 unsigned int tips_count,
+                                 char * tipstring,
+                                 unsigned int * tiplist_count)
+{
+  unsigned int i;
+  unsigned int k;
+  unsigned int commas_count = 0;
+
+  char * taxon;
+  unsigned int taxon_len;
+
+  ENTRY * found = NULL;
+
+  for (i = 0; i < strlen(tipstring); ++i)
+    if (tipstring[i] == ',')
+      commas_count++;
+  
+  utree_t ** node_list = (utree_t **)xmalloc(tips_count * sizeof(utree_t *));
+  utree_query_tipnodes(root, node_list);
+
+  utree_t ** out_node_list = (utree_t **)xmalloc((commas_count+1) *
+                                                   sizeof(utree_t *));
+
+  /* create a hashtable of tip labels */
+  hcreate(2 * tips_count);
+
+  for (i = 0; i < tips_count; ++i)
+  {
+    ENTRY entry;
+    entry.key  = node_list[i]->label;
+    entry.data = node_list[i];
+    hsearch(entry,ENTER);
+  }
+
+  char * s = tipstring;
+  
+  k = 0;
+  while (*s)
+  {
+    /* get next tip */
+    taxon_len = strcspn(s, ",");
+    if (!taxon_len)
+      fatal("Erroneous prune list format (double comma)/taxon missing");
+
+    taxon = strndup(s, taxon_len);
+
+    /* search tip in hash table */
+    ENTRY query;
+    query.key = taxon;
+    found = NULL;
+    found = hsearch(query,FIND);
+    
+    if (!found)
+      fatal("Taxon %s in does not appear in the tree", taxon);
+
+    /* store pointer in output list */
+    out_node_list[k++] = (utree_t *)(found->data);
+
+    /* free tip label, and move to the beginning of next tip if available */
+    free(taxon);
+    s += taxon_len;
+    if (*s == ',') 
+      s += 1;
+  }
+
+  /* kill the hash table */
+  hdestroy();
+
+  free(node_list);
+
+  /* return number of tips in the list */
+  *tiplist_count = commas_count + 1;
+
+  /* return tip node list */
+  return out_node_list;
+}

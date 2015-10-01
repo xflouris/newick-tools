@@ -187,6 +187,11 @@ rtree_t * utree_convert_rtree(utree_t * root,
                               int tip_count,
                               char * outgroup_list);
 
+utree_t ** utree_tipstring_nodes(utree_t * root,
+                                 unsigned int tips_count,
+                                 char * tipstring,
+                                 unsigned int * tiplist_count);
+
 /* functions in rtree.c */
 
 void rtree_show_ascii(FILE * stream, rtree_t * tree);

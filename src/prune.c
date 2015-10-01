@@ -73,11 +73,53 @@ static void prune_taxa(rtree_t ** root,
   }
 }
 
+static utree_t * utree_prune_taxa(utree_t ** prune_tips_list,
+                                  unsigned int prune_tips_count)
+{
+  unsigned int i;
+  /* TODO: Check if we can remove that many tips */
+  utree_t * root = NULL;
+
+  for (i = 0; i < prune_tips_count; ++i)
+  {
+    //printf("%s %d\n", prune_tips_list[i]->label, prune_tips_list[i]->height);
+    utree_t * parent = prune_tips_list[i]->back;
+    //printf("parent: %d\n", parent->height);
+    //printf("parent->next->back %s %d\n", parent->next->back->label, parent->next->back->height);
+    //printf("parent->next->next->back %d\n", parent->next->next->back->height);
+    
+    utree_t * x = parent->next->back;
+    utree_t * y = parent->next->next->back;
+
+    double len = x->length + y->length;
+
+    free(parent->next->next);
+    free(parent->next);
+    free(parent->label);
+    free(parent);
+
+    x->back = y;
+    y->back = x;
+    x->length = y->length = len;
+
+    free(prune_tips_list[i]->label);
+    free(prune_tips_list[i]);
+
+    if (!(x->next))
+      root = y;
+    else
+      root = x;
+  }
+
+  return root;
+}
+                        
+
 void cmd_prune_tips()
 {
   FILE * out;
-  rtree_t ** prune_tips_list;
   unsigned int prune_tips_count;
+  char * newick;
 
   /* attempt to open output file */
   out = opt_outfile ?
@@ -89,17 +131,51 @@ void cmd_prune_tips()
 
   rtree_t * rtree = rtree_parse_newick(opt_treefile);
 
-  prune_tips_list = rtree_tipstring_nodes(rtree,
-                                          opt_prune_tips,
-                                          &prune_tips_count);
+  if (!rtree)
+  {
+    int tip_count;
+    utree_t * utree = utree_parse_newick(opt_treefile, &tip_count);
+    if (!utree)
+      fatal("Tree is neither unrooted nor rooted. Go fix your tree.");
 
-  prune_taxa(&rtree, prune_tips_list, prune_tips_count);
-  free(prune_tips_list);
+    if (!opt_quiet)
+      fprintf(stdout, "Loaded unrooted tree...\n");
 
-  rtree_reset_leaves(rtree);
+    utree_t ** prune_tips_list = utree_tipstring_nodes(utree,
+                                                       tip_count,
+                                                       opt_prune_tips,
+                                                       &prune_tips_count);
+    if (prune_tips_count+3 > (unsigned int)tip_count)
+      fatal("Error, the resulting tree must have at least 3 taxa.");
 
-  /* export tree structure to newick string */
-  char * newick = rtree_export_newick(rtree);
+    utree_t * uroot = utree_prune_taxa(prune_tips_list, prune_tips_count);
+    free(prune_tips_list);
+
+    /* export tree structure to newick string */
+    newick = utree_export_newick(uroot);
+
+    /* deallocate tree structure */
+    utree_destroy(uroot);
+  }
+  else
+  {
+    rtree_t ** prune_tips_list = rtree_tipstring_nodes(rtree,
+                                                       opt_prune_tips,
+                                                       &prune_tips_count);
+
+    prune_taxa(&rtree, prune_tips_list, prune_tips_count);
+    free(prune_tips_list);
+
+    rtree_reset_leaves(rtree);
+
+    /* export tree structure to newick string */
+    newick = rtree_export_newick(rtree);
+
+    /* deallocate tree structure */
+    rtree_destroy(rtree);
+  }
+
+
 
   fprintf(out, "%s\n", newick);
 
@@ -107,9 +183,6 @@ void cmd_prune_tips()
     fclose(out);
 
   free(newick);
-
-  /* deallocate tree structure */
-  rtree_destroy(rtree);
 
   if (!opt_quiet)
     fprintf(stdout, "Done...\n");
