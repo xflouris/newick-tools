@@ -356,7 +356,7 @@ void cmd_help()
           "  --lca_right                    Print  two taxa whose LCA is the right child of\n"
           "                                 the root node.\n"
           "  --identical FILENAME           Check whether the tree specified by FILENAME is\n"
-          "                                 identical to the --tree_file."
+          "                                 identical to the --tree_file.\n"
           "  --extract_tips                 Display all tip labels.\n"
           "  --extract_ltips                Display all tip label of left subtree.\n"
           "  --extract_rtips                Display all tip label of right subtree.\n"
