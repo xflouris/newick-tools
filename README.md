@@ -44,6 +44,7 @@ General options:
 * `--version`
 * `--quiet`
 * `--precision`
+* `--seed`
 
 Options for binary trees:
 * `--lca_left`
@@ -61,6 +62,7 @@ Options for unrooted trees:
 
 Options for all tree types:
 * `--prune_tips`
+* `--prune_random`
 * `--tree_show`
 
 Options for visualization:
