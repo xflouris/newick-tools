@@ -72,6 +72,13 @@ Options for visualization:
 * `--svg_width`
 * `--svg_fontsize`
 * `--svg_tipspacing`
+* `--svg_legend_ratio`
+* `--svg_nolegend`
+* `--svg_marginleft`
+* `--svg_marginright`
+* `--svg_margintop`
+* `--svg_marginbottom`
+* `--svg_inner_radius`
 
 Input and output options:
 * `--tree_file`
