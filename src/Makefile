@@ -36,7 +36,7 @@ PROG=newick-tools
 
 all: $(PROG)
 
-OBJS=util.o newick-tools.o parse_rtree.o parse_utree.o lex_rtree.o lex_utree.o arch.o rtree.o utree.o lca_tips.o lca_utree.o prune.o svg.o
+OBJS=util.o newick-tools.o parse_rtree.o parse_utree.o lex_rtree.o lex_utree.o arch.o rtree.o utree.o lca_tips.o lca_utree.o prune.o svg.o subtree.o
 
 $(PROG): $(OBJS)
 	$(CC) -Wall $(LINKFLAGS) $+ -o $@ $(LIBS)

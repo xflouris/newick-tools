@@ -64,6 +64,7 @@ long opt_svg_inner_radius;
 long opt_prune_random;
 long opt_seed;
 double opt_svg_legend_ratio;
+double opt_subtree_short;
 
 static struct option long_options[] =
 {
@@ -98,6 +99,7 @@ static struct option long_options[] =
   {"precision",          required_argument, 0, 0 },  /* 28 */
   {"prune_random",       required_argument, 0, 0 },  /* 29 */
   {"seed",               required_argument, 0, 0 },  /* 30 */
+  {"subtree_short",      required_argument, 0, 0 },  /* 31 */
   { 0, 0, 0, 0 }
 };
 
@@ -141,6 +143,7 @@ void args_init(int argc, char ** argv)
   opt_svg_margintop = 20;
   opt_svg_marginbottom = 20;
   opt_svg_inner_radius = 0;
+  opt_subtree_short = -1;
 
   while ((c = getopt_long_only(argc, argv, "", long_options, &option_index)) == 0)
   {
@@ -271,6 +274,12 @@ void args_init(int argc, char ** argv)
         opt_seed = atol(optarg);
         break;
 
+      case 31:
+        opt_subtree_short = atof(optarg);
+        if (opt_subtree_short < 0)
+          fatal("Error: --subtree_short must be a positive real number");
+        break;
+
       default:
         fatal("Internal error in option parsing");
     }
@@ -326,6 +335,8 @@ void args_init(int argc, char ** argv)
     commands++;
   if (opt_induce_subtree)
     commands++;
+  if (opt_subtree_short >= 0)
+    commands++;
 
   /* if more than one independent command, fail */
   if (commands > 1)
@@ -368,6 +379,8 @@ void cmd_help()
           "  --extract_rtips                Display all tip label of right subtree.\n"
           "  --svg                          Create an SVG image of the tree.\n"
           "  --induce_subtree TAXA          Construct induced tree from specified taxa.\n"
+          "  --subtree_short REAL           Print all subtrees where all branch lengths are\n"
+          "                                 shorter or equal to the threshold\n"
           "Commands for unrooted trees:\n"
           "  --root TAXA                    Root  the  tree  on  the  outgroup specified by\n"
           "                                 TAXA. The edge connecting the outgroup (must be\n"
@@ -837,6 +850,10 @@ int main (int argc, char * argv[])
   else if (opt_induce_subtree)
   {
     cmd_induce_tree();
+  }
+  else if (opt_subtree_short)
+  {
+    cmd_subtree_short();
   }
 
   free(cmdline);

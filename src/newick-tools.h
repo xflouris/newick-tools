@@ -74,6 +74,8 @@ typedef struct rtree_s
   struct rtree_s * right;
   struct rtree_s * parent;
   unsigned int leaves;
+  char * color;
+  int mark;
 
   void * data;
 } rtree_t;
@@ -116,6 +118,7 @@ extern long opt_svg_margintop;
 extern long opt_svg_marginbottom;
 extern long opt_svg_inner_radius;
 extern double opt_svg_legend_ratio;
+extern double opt_subtree_short;
 
 /* common data */
 
@@ -224,6 +227,11 @@ rtree_t ** rtree_tipstring_nodes(rtree_t * root,
 rtree_t ** rtree_tiplist_complement(rtree_t * root,
                                     rtree_t ** tiplist,
                                     unsigned int tiplist_count);
+
+int rtree_traverse_postorder(rtree_t * root,
+                             int (*cbtrav)(rtree_t *),
+                             rtree_t ** outbuffer);
+
 /* functions in parse_rtree.y */
 
 rtree_t * rtree_parse_newick(const char * filename);
@@ -245,9 +253,12 @@ utree_t * lca_compute(utree_t * tip1, utree_t * tip2);
 
 /* functions in prune.c */
 
-void cmd_prune_tips();
-void cmd_induce_tree();
+void cmd_prune_tips(void);
+void cmd_induce_tree(void);
 
 /* functions in svg.c */
 
 void cmd_svg(void);
+
+/* functions in subtree.c */
+void cmd_subtree_short(void);
