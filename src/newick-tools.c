@@ -374,7 +374,6 @@ void cmd_help()
           "                                 the root node.\n"
           "  --identical FILENAME           Check whether the tree specified by FILENAME is\n"
           "                                 identical to the --tree_file.\n"
-          "  --extract_tips                 Display all tip labels.\n"
           "  --extract_ltips                Display all tip label of left subtree.\n"
           "  --extract_rtips                Display all tip label of right subtree.\n"
           "  --svg                          Create an SVG image of the tree.\n"
@@ -389,6 +388,7 @@ void cmd_help()
           "                                 If  TAXA  is empty, then the longest tip-branch\n"
           "                                 is used.\n"
           "Commands for all tree types:\n"
+          "  --extract_tips                 Display all tip labels.\n"
           "  --prune_tips TAXA              Prune the comma-separated TAXA from the tree.\n"
           "  --prune_random INT             Randomly prune the specified amount of taxa.\n"
           "  --tree_show                    Display an ASCII version of the tree.\n"
@@ -654,23 +654,51 @@ void cmd_extract_tips(void)
 
   rtree_t * rtree = rtree_parse_newick(opt_treefile);
 
-  if (!rtree)
-    fatal("Tree must be rooted...\n");
+  if (rtree)
+  {
+    if (!opt_quiet)
+      printf("Loaded binary rooted tree...\n");
+
+    if (!opt_quiet)
+      printf("Tip labels:\n");
+
+    rtree_t ** node_list = (rtree_t **)calloc(rtree->leaves,sizeof(rtree_t *)); 
+    rtree_query_tipnodes(rtree, node_list);
+
+    for (i = 0; i < rtree->leaves; ++i)
+      printf("%s\n", node_list[i]->label);
+
+    /* deallocate tree structure */
+    rtree_destroy(rtree);
+
+    free(node_list);
+  }
+  else
+  {
+    int tip_count;
+
+    utree_t * utree = utree_parse_newick(opt_treefile, &tip_count);
+    if (!utree)
+      fatal("Tree is neither rooted or unrooted...\n");
+    
+    if (!opt_quiet)
+      printf("Loaded binary unrooted tree...\n");
+
+    if (!opt_quiet)
+      printf("Tip labels:\n");
+
+    utree_t ** node_list = (utree_t **)calloc(tip_count,sizeof(utree_t *)); 
+    tip_count = utree_query_tipnodes(utree, node_list);
+
+    for (i = 0; (int)i < tip_count; ++i)
+      printf("%s\n", node_list[i]->label);
+
+    /* deallocate tree structure */
+    utree_destroy(utree);
+
+    free(node_list);
+  }
   
-  if (!opt_quiet)
-    printf("Tip labels for left subtree:\n");
-
-  rtree_t ** node_list = (rtree_t **)calloc(rtree->leaves,sizeof(rtree_t *)); 
-  rtree_query_tipnodes(rtree, node_list);
-
-  for (i = 0; i < rtree->leaves; ++i)
-    printf("%s\n", node_list[i]->label);
-
-  /* deallocate tree structure */
-  rtree_destroy(rtree);
-
-  free(node_list);
-
   if (!opt_quiet)
     fprintf(stdout, "\nDone...\n");
 }
