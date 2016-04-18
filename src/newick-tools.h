@@ -80,6 +80,16 @@ typedef struct rtree_s
   void * data;
 } rtree_t;
 
+typedef struct ntree_s
+{
+  char * label;
+  double length;
+  struct ntree_s ** children;
+  struct ntree_s * parent;
+  int children_count;
+  int mark;
+} ntree_t;
+
 /* macros */
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -105,6 +115,8 @@ extern long opt_extract_ltips;
 extern long opt_extract_rtips;
 extern long opt_extract_tips;
 extern long opt_prune_random;
+extern long opt_info;
+extern long opt_make_binary;
 extern long opt_svg;
 extern long opt_seed;
 extern long opt_extract_lsubtree;
@@ -160,6 +172,12 @@ void fillheader();
 void show_header();
 void cmd_tree_show();
 
+/* functions in parse_ntree.y */
+
+ntree_t * ntree_parse_newick(const char * filename);
+
+void ntree_destroy(ntree_t * root);
+
 /* functions in parse_rtree.y */
 
 rtree_t * rtree_parse_newick(const char * filename);
@@ -172,6 +190,16 @@ utree_t * utree_parse_newick(const char * filename,
                              int * tip_count);
 
 void utree_destroy(utree_t * root);
+
+/* functions in ntree.c */
+
+void ntree_node_count(ntree_t * root,
+                      int * inner_count,
+                      int * tip_count,
+                      int * min_inner_degree,
+                      int * max_inner_degree);
+
+rtree_t * ntree_to_rtree(ntree_t * root);
 
 /* functions in utree.c */
 
@@ -262,3 +290,6 @@ void cmd_svg(void);
 
 /* functions in subtree.c */
 void cmd_subtree_short(void);
+
+/* functions in info.c */
+void cmd_info(void);

@@ -53,20 +53,23 @@ Options for binary trees:
 * `--lca_left`
 * `--lca_right`
 * `--identical`
-* `--extract_tips`
 * `--extract_ltips`
 * `--extract_rtips`
 * `--svg`
 * `--induce_subtree`
+* `--subtree_short`
 * `--svg_legend_ratio`
 
 Options for unrooted trees:
 * `--root`
 
 Options for all tree types:
+* `--extract_tips`
 * `--prune_tips`
 * `--prune_random`
 * `--tree_show`
+* `--make_binary`
+* `--info`
 
 Options for visualization:
 * `--svg_width`
@@ -98,16 +101,20 @@ The code is currently licensed under the [GNU Affero General Public License vers
 **Makefile**       | Makefile.
 **lex_rtree.l**    | Lexical analyzer parsing newick rooted trees.
 **lex_utree.l**    | Lexical analyzer parsing newick unrooted trees.
+**lex_ntree.l**    | Lexical analyzer parsing newick n-ary trees.
 **util.c**         | Various common utility functions.
 **arch.c**         | Architecture specific code (Mac/Linux).
 **rtree.c**        | Rooted tree manipulation functions.
 **utree.c**        | Unrooted tree manipulation functions.
+**ntree.c**        | n-ary tree manipulation functions.
 **parse_rtree.y**  | Functions for parsing rooted trees in newick format.
 **parse_utree.y**  | Functions for parsing unrooted trees in newick format.
+**parse_ntree.y**  | Functions for parsing n-ary trees in newick format.
 **lca_utree.c**    | Naive LCA computation in unrooted trees.
 **lca_tips.c**     | Compute tips leading to an LCA node.
 **svg.c**          | SVG output routines.
 **prune.c**        | Methods for pruning taxa and inducing subtrees.
+**info.c**         | Functions for showing various tree-related  information.
 
 ## Bugs
 

@@ -36,7 +36,9 @@ PROG=newick-tools
 
 all: $(PROG)
 
-OBJS=util.o newick-tools.o parse_rtree.o parse_utree.o lex_rtree.o lex_utree.o arch.o rtree.o utree.o lca_tips.o lca_utree.o prune.o svg.o subtree.o
+OBJS=util.o newick-tools.o parse_rtree.o parse_utree.o lex_rtree.o lex_utree.o \
+     arch.o rtree.o utree.o lca_tips.o lca_utree.o prune.o svg.o subtree.o \
+     parse_ntree.o lex_ntree.o ntree.o info.o
 
 $(PROG): $(OBJS)
 	$(CC) -Wall $(LINKFLAGS) $+ -o $@ $(LIBS)
@@ -51,4 +53,4 @@ parse_%.c: parse_%.y
 	$(FLEX) -o $@ $<
 
 clean:
-	rm -f *~ $(OBJS) gmon.out $(PROG) parse_rtree.c parse_utree.c lex_utree.c lex_rtree.c parse_rtree.h parse_utree.h
+	rm -f *~ $(OBJS) gmon.out $(PROG) parse_rtree.c parse_utree.c parse_ntree.c lex_rtree.c lex_utree.c lex_ntree.c parse_rtree.h parse_utree.h parse_ntree.h

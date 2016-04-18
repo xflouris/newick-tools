@@ -63,6 +63,8 @@ long opt_svg_marginbottom;
 long opt_svg_inner_radius;
 long opt_prune_random;
 long opt_seed;
+long opt_info;
+long opt_make_binary;
 double opt_svg_legend_ratio;
 double opt_subtree_short;
 
@@ -100,6 +102,8 @@ static struct option long_options[] =
   {"prune_random",       required_argument, 0, 0 },  /* 29 */
   {"seed",               required_argument, 0, 0 },  /* 30 */
   {"subtree_short",      required_argument, 0, 0 },  /* 31 */
+  {"info",               no_argument,       0, 0 },  /* 32 */
+  {"make_binary",        no_argument,       0, 0 },  /* 33 */
   { 0, 0, 0, 0 }
 };
 
@@ -144,6 +148,7 @@ void args_init(int argc, char ** argv)
   opt_svg_marginbottom = 20;
   opt_svg_inner_radius = 0;
   opt_subtree_short = -1;
+  opt_make_binary = 0;
 
   while ((c = getopt_long_only(argc, argv, "", long_options, &option_index)) == 0)
   {
@@ -280,6 +285,14 @@ void args_init(int argc, char ** argv)
           fatal("Error: --subtree_short must be a positive real number");
         break;
 
+      case 32:
+        opt_info = 1;
+        break;
+
+      case 33:
+        opt_make_binary = 1;
+        break;
+
       default:
         fatal("Internal error in option parsing");
     }
@@ -337,6 +350,10 @@ void args_init(int argc, char ** argv)
     commands++;
   if (opt_subtree_short >= 0)
     commands++;
+  if (opt_info)
+    commands++;
+  if (opt_make_binary)
+    commands++;
 
   /* if more than one independent command, fail */
   if (commands > 1)
@@ -392,6 +409,8 @@ void cmd_help()
           "  --prune_tips TAXA              Prune the comma-separated TAXA from the tree.\n"
           "  --prune_random INT             Randomly prune the specified amount of taxa.\n"
           "  --tree_show                    Display an ASCII version of the tree.\n"
+          "  --info                         Display information about tree.\n"
+          "  --make_binary                  Convert n-ary/unrooted tree to binary.\n"
           "Options for visualization:\n"
           "  --svg_width INT                Width of SVG image in pixels (default: 1920).\n"
           "  --svg_fontsize INT             Font size of SVG image. (default: 12)\n"
@@ -441,7 +460,7 @@ void cmd_tree_show()
   else
   {
     if (!opt_quiet)
-      fprintf(stdout, "Loaded rooted tree...\n");
+      fprintf(stdout, "Loaded rooted binary tree...\n");
 
     rtree_show_ascii(out,rtree);
     rtree_destroy(rtree);
@@ -450,7 +469,6 @@ void cmd_tree_show()
   if (opt_outfile)
     fclose(out);
 }
-
 
 void cmd_lca_left(void)
 {
@@ -780,6 +798,66 @@ void cmd_identical(void)
   
 }
 
+void cmd_make_binary()
+{
+  FILE * out;
+
+  /* parse tree */
+  if (!opt_quiet)
+    fprintf(stdout, "Parsing tree file...\n");
+
+  rtree_t * rtree = rtree_parse_newick(opt_treefile);
+
+  if (rtree)
+  {
+    printf("Loaded tree is already binary...\n");
+
+    /* deallocate tree structure */
+    rtree_destroy(rtree);
+  }
+  else
+  {
+    int tip_count;
+
+    utree_t * utree = utree_parse_newick(opt_treefile, &tip_count);
+    if (utree)
+    {
+      if (!opt_quiet)
+        printf("Loaded unrooted binary tree...\n");
+
+      /* deallocate tree structure */
+      utree_destroy(utree);
+    }
+
+    /* load it as n-ary */
+    ntree_t * ntree = ntree_parse_newick(opt_treefile);
+    if (ntree)
+    {
+      /* convert to binary */
+      rtree_t * rt = ntree_to_rtree(ntree);
+
+      /* attempt to open output file */
+      out = opt_outfile ?
+              xopen(opt_outfile,"w") : stdout;
+
+      char * newick = rtree_export_newick(rt);
+
+      if (!opt_quiet)
+        fprintf(stdout,"Writing newick string...\n");
+      fprintf(out, "%s\n", newick);
+
+      free(newick);
+
+      fclose(out);
+
+      /* deallocate tree structures */
+      ntree_destroy(ntree);
+      rtree_destroy(rt);
+    }
+    else
+      fatal("Failed loading tree as n-ary");
+  }
+}
 
 void getentirecommandline(int argc, char * argv[])
 {
@@ -879,9 +957,17 @@ int main (int argc, char * argv[])
   {
     cmd_induce_tree();
   }
-  else if (opt_subtree_short)
+  else if (opt_subtree_short >= 0)
   {
     cmd_subtree_short();
+  }
+  else if (opt_info)
+  {
+    cmd_info();
+  }
+  else if (opt_make_binary)
+  {
+    cmd_make_binary();
   }
 
   free(cmdline);
