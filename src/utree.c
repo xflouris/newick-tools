@@ -489,7 +489,6 @@ rtree_t * utree_convert_rtree(utree_t * root, int tip_count, char * outgroup_lis
   return rnode;
 }
 
-
 utree_t ** utree_tipstring_nodes(utree_t * root,
                                  unsigned int tips_count,
                                  char * tipstring,

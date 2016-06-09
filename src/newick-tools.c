@@ -39,6 +39,7 @@ char * opt_identical;
 char * opt_prune_tips;
 char * opt_root;
 char * opt_induce_subtree;
+char * opt_alltree_filename;
 int opt_quiet;
 int opt_precision;
 int opt_svg_showlegend;
@@ -104,6 +105,7 @@ static struct option long_options[] =
   {"subtree_short",      required_argument, 0, 0 },  /* 31 */
   {"info",               no_argument,       0, 0 },  /* 32 */
   {"make_binary",        no_argument,       0, 0 },  /* 33 */
+  {"utree_all",          required_argument, 0, 0 },  /* 34 */
   { 0, 0, 0, 0 }
 };
 
@@ -149,6 +151,7 @@ void args_init(int argc, char ** argv)
   opt_svg_inner_radius = 0;
   opt_subtree_short = -1;
   opt_make_binary = 0;
+  opt_alltree_filename = 0;
 
   while ((c = getopt_long_only(argc, argv, "", long_options, &option_index)) == 0)
   {
@@ -293,6 +296,10 @@ void args_init(int argc, char ** argv)
         opt_make_binary = 1;
         break;
 
+      case 34:
+        opt_alltree_filename = optarg;
+        break;
+
       default:
         fatal("Internal error in option parsing");
     }
@@ -354,6 +361,8 @@ void args_init(int argc, char ** argv)
     commands++;
   if (opt_make_binary)
     commands++;
+  if (opt_alltree_filename)
+    commands++;
 
   /* if more than one independent command, fail */
   if (commands > 1)
@@ -367,8 +376,9 @@ void args_init(int argc, char ** argv)
   }
 
   /* check for mandatory options */
-  if (mand_options != mandatory_options_count)
-    fatal("Mandatory options are:\n\n%s", mandatory_options_list);
+  if (!opt_alltree_filename)
+    if (mand_options != mandatory_options_count)
+      fatal("Mandatory options are:\n\n%s", mandatory_options_list);
 
 }
 
@@ -404,6 +414,8 @@ void cmd_help()
           "                                 into  two edges and a new root node is created.\n"
           "                                 If  TAXA  is empty, then the longest tip-branch\n"
           "                                 is used.\n"
+          "  --utree_all FILENAME           Generate all unrooted tree topologies for the\n"
+          "                                 taxa in the provided file (one taxon per line\n"
           "Commands for all tree types:\n"
           "  --extract_tips                 Display all tip labels.\n"
           "  --prune_tips TAXA              Prune the comma-separated TAXA from the tree.\n"
@@ -968,6 +980,10 @@ int main (int argc, char * argv[])
   else if (opt_make_binary)
   {
     cmd_make_binary();
+  }
+  else if (opt_alltree_filename)
+  {
+    cmd_utree_bf();
   }
 
   free(cmdline);

@@ -106,6 +106,7 @@ extern char * opt_outfile;
 extern char * opt_prune_tips;
 extern char * opt_root;
 extern char * opt_induce_subtree;
+extern char * opt_alltree_filename;
 extern long opt_help;
 extern long opt_version;
 extern long opt_treeshow;
@@ -278,6 +279,9 @@ void lca_tips(rtree_t * root, rtree_t ** tip1, rtree_t ** tip2);
 void lca_init(utree_t * root);
 void lca_destroy();
 utree_t * lca_compute(utree_t * tip1, utree_t * tip2);
+
+/* functions in utree_bf.c */
+void cmd_utree_bf(void);
 
 /* functions in prune.c */
 
