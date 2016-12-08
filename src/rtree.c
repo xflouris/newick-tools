@@ -26,8 +26,46 @@ static int indend_space = 4;
 static void print_node_info(FILE * stream, rtree_t * tree)
 {
   fprintf(stream," %s", tree->label);
-  fprintf(stream," %f", tree->length);
+  fprintf(stream," %.*f", opt_precision, tree->length);
   fprintf(stream,"\n");
+}
+
+double rtree_longest_path(rtree_t * root)
+{
+  int i;
+  int count;
+  int tip_count = root->leaves;
+  double maxlength = 0;
+
+  rtree_t ** tips = (rtree_t **)xmalloc(tip_count*sizeof(rtree_t *));
+
+  /* unnecessarily expensive computation, but very simple to write.
+
+     Improvement: Pre-compute the height for each node as:
+       
+       max(left->height + left->length,right->height + right->length)
+
+     by setting height at tips to 0. Then the answer is:
+
+     root->height + root->legth */
+
+  count = rtree_query_tipnodes(root, tips);
+  for (i = 0; i < count; ++i)
+  {
+    maxlength = 0;
+    double length = 0;
+    rtree_t * node = tips[i];
+    while (node)
+    {
+      length += node->length;
+      node = node->parent;
+    }
+    if (length > maxlength) maxlength = length;
+  }
+
+  free(tips);
+
+  return maxlength;
 }
 
 static void print_tree_recurse(FILE * stream,
@@ -101,7 +139,7 @@ void rtree_show_ascii(FILE * stream, rtree_t * tree)
   
   int indend_max = tree_indend_level(tree,0);
 
-  int * active_node_order = (int *)malloc((indend_max+1) * sizeof(int));
+  int * active_node_order = (int *)xmalloc((indend_max+1) * sizeof(int));
   active_node_order[0] = 1;
   active_node_order[1] = 1;
 
@@ -119,16 +157,17 @@ static char * rtree_export_newick_recursive(rtree_t * root)
   if (!root) return NULL;
 
   if (!(root->left) || !(root->right))
-    asprintf(&newick, "%s:%f", root->label, root->length);
+    asprintf(&newick, "%s:%.*f", root->label, opt_precision, root->length);
   else
   {
     char * subtree1 = rtree_export_newick_recursive(root->left);
     char * subtree2 = rtree_export_newick_recursive(root->right);
 
-    asprintf(&newick, "(%s,%s)%s:%f", subtree1,
-                                      subtree2,
-                                      root->label ? root->label : "",
-                                      root->length);
+    asprintf(&newick, "(%s,%s)%s:%.*f", subtree1,
+                                        subtree2,
+                                        root->label ? root->label : "",
+                                        opt_precision,
+                                        root->length);
     free(subtree1);
     free(subtree2);
   }
@@ -143,16 +182,17 @@ char * rtree_export_newick(rtree_t * root)
   if (!root) return NULL;
 
   if (!(root->left) || !(root->right))
-    asprintf(&newick, "%s:%f", root->label, root->length);
+    asprintf(&newick, "%s:%.*f", root->label, opt_precision, root->length);
   else
   {
     char * subtree1 = rtree_export_newick_recursive(root->left);
     char * subtree2 = rtree_export_newick_recursive(root->right);
 
-    asprintf(&newick, "(%s,%s)%s:%f;", subtree1,
-                                       subtree2,
-                                       root->label ? root->label : "",
-                                       root->length);
+    asprintf(&newick, "(%s,%s)%s:%.*f;", subtree1,
+                                         subtree2,
+                                         root->label ? root->label : "",
+                                         opt_precision,
+                                         root->length);
     free(subtree1);
     free(subtree2);
   }
@@ -221,6 +261,35 @@ static void rtree_traverse_postorder_recursive(rtree_t * node,
     *index = *index + 1;
   }
 }
+
+static int cb_rtree_all(rtree_t * node)
+{
+  return 1;
+}
+
+int rtree_query_branch_lengths(rtree_t * root, double * outbuffer)
+{
+  int i;
+  int count;
+
+  rtree_t ** buffer = (rtree_t **)xmalloc((2*root->leaves-1)*sizeof(rtree_t *));
+
+  count = rtree_traverse(root, cb_rtree_all, buffer);
+
+  if (count == -1)
+    fatal("Error while processing tree");
+
+  for (i=0; i<count-1; ++i)
+  {
+    outbuffer[i] = buffer[i]->length; 
+  }
+
+  free(buffer);
+
+  return count-1;
+
+}
+                                    
 
 
 int rtree_traverse_postorder(rtree_t * root,
@@ -314,7 +383,7 @@ void rtree_traverse_sorted(rtree_t * root, rtree_t ** node_list, int * index)
   if (swap)
   {
     /* swap the two trees */
-    rtree_t ** temp = (rtree_t **)malloc(left_len * sizeof(rtree_t *));
+    rtree_t ** temp = (rtree_t **)xmalloc(left_len * sizeof(rtree_t *));
     memcpy(temp, node_list+left_start, left_len * sizeof(rtree_t *));
     memcpy(node_list+left_start, node_list+right_start, right_len * sizeof(rtree_t *));
     memcpy(node_list+left_start+right_len, temp, left_len * sizeof(rtree_t *));

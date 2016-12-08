@@ -25,7 +25,7 @@ PROFILING=-g
 WARN=-Wall -Wsign-compare
 
 CC = gcc
-CFLAGS = -g -O3 $(WARN) -D_GNU_SOURCE
+CFLAGS = -g $(WARN) -D_GNU_SOURCE
 LINKFLAGS=$(PROFILING)
 LIBS=-lm
 
@@ -38,7 +38,8 @@ all: $(PROG)
 
 OBJS=util.o newick-tools.o parse_rtree.o parse_utree.o lex_rtree.o lex_utree.o \
      arch.o rtree.o utree.o lca_tips.o lca_utree.o prune.o svg.o subtree.o \
-     parse_ntree.o lex_ntree.o ntree.o info.o utree_bf.o
+     parse_ntree.o lex_ntree.o ntree.o info.o utree_bf.o stats.o create.o dist.o \
+     bd.o labels.o attach.o
 
 $(PROG): $(OBJS)
 	$(CC) -Wall $(LINKFLAGS) $+ -o $@ $(LIBS)

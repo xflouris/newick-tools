@@ -112,7 +112,7 @@ void utree_show_ascii(FILE * stream, utree_t * tree)
   int max_indend_level = (a > b ? a : b);
 
 
-  int * active_node_order = (int *)malloc((max_indend_level+1) * sizeof(int));
+  int * active_node_order = (int *)xmalloc((max_indend_level+1) * sizeof(int));
   active_node_order[0] = 1;
   active_node_order[1] = 1;
 
@@ -217,6 +217,33 @@ int utree_traverse(utree_t * root,
   return index;
 }
 
+static int cb_utree_all(utree_t * node)
+{
+  return 1;
+}
+
+int utree_query_branch_lengths(utree_t * node, double * outbuffer, int node_count)
+{
+  int i;
+
+  utree_t ** buffer = (utree_t **)xmalloc((node_count)*sizeof(utree_t *));
+
+  node_count = utree_traverse(node, cb_utree_all, buffer);
+
+  if (node_count == -1)
+    fatal("Error while processing tree");
+
+  for (i=0; i<node_count-1; ++i)
+  {
+    outbuffer[i] = buffer[i]->length; 
+  }
+
+  free(buffer);
+
+  return node_count-1;
+
+}
+
 
 static void utree_query_tipnodes_recursive(utree_t * node,
                                            utree_t ** node_list,
@@ -293,6 +320,7 @@ static rtree_t * utree_rtree(utree_t * unode)
   else
     rnode->label = NULL;
   rnode->length = unode->length;
+  rnode->data = NULL;
 
   if (!unode->next) 
   {
@@ -481,6 +509,7 @@ rtree_t * utree_convert_rtree(utree_t * root, int tip_count, char * outgroup_lis
   rnode->right->length /= 2;
   rnode->label = NULL;
   rnode->length = 0;
+  rnode->data = NULL;
 
   rtree_reset_leaves(rnode);
 

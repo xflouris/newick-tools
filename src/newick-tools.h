@@ -36,11 +36,12 @@
 #include <sys/resource.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <time.h>
 
 /* constants */
 
 #define PROG_NAME "newick-tools"
-#define PROG_VERSION "v0.0.0"
+#define PROG_VERSION "v0.0.1"
 
 #ifdef __APPLE__
 #define PROG_ARCH "macosx_x86_64"
@@ -94,6 +95,7 @@ typedef struct ntree_s
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
+#define SWAP(x,y) do { __typeof__ (x) _t = x; x = y; y = _t; } while(0)
 
 /* options */
 
@@ -107,6 +109,10 @@ extern char * opt_prune_tips;
 extern char * opt_root;
 extern char * opt_induce_subtree;
 extern char * opt_alltree_filename;
+extern char * opt_resolve_clade;
+extern char * opt_labels;
+extern char * opt_attach_filename;
+extern char * opt_attach_at;
 extern long opt_help;
 extern long opt_version;
 extern long opt_treeshow;
@@ -119,9 +125,10 @@ extern long opt_prune_random;
 extern long opt_info;
 extern long opt_make_binary;
 extern long opt_svg;
-extern long opt_seed;
 extern long opt_extract_lsubtree;
 extern long opt_extract_rsubtree;
+extern long opt_randomtree_binary;
+extern long opt_randomtree_tips;
 extern long opt_svg_width;
 extern long opt_svg_fontsize;
 extern long opt_svg_tipspace;
@@ -130,8 +137,20 @@ extern long opt_svg_marginright;
 extern long opt_svg_margintop;
 extern long opt_svg_marginbottom;
 extern long opt_svg_inner_radius;
+extern long opt_resolve_ladder;
+extern long opt_simulate_bd;
+extern long opt_simulate_tips;
+extern long opt_origin_scale;
+extern long opt_seed;
+extern long opt_scalebranch;
 extern double opt_svg_legend_ratio;
 extern double opt_subtree_short;
+extern double opt_randomtree_minbranch;
+extern double opt_randomtree_maxbranch;
+extern double opt_birthrate;
+extern double opt_deathrate;
+extern double opt_origin;
+extern double opt_scalebranch_factor;
 
 /* common data */
 
@@ -150,28 +169,38 @@ extern long avx2_present;
 
 /* functions in util.c */
 
-void fatal(const char * format, ...);
+void fatal(const char * format, ...) __attribute__ ((noreturn));
 void progress_init(const char * prompt, unsigned long size);
 void progress_update(unsigned int progress);
-void progress_done();
+void progress_done(void);
 void * xmalloc(size_t size);
+void * xcalloc(size_t nmemb, size_t size);
 void * xrealloc(void *ptr, size_t size);
 char * xstrchrnul(char *s, int c);
 char * xstrdup(const char * s);
 char * xstrndup(const char * s, size_t len);
 long getusec(void);
-void show_rusage();
+void show_rusage(void);
 FILE * xopen(const char * filename, const char * mode);
 void shuffle(void * array, size_t n, size_t size);
 
 /* functions in newick-tools.c */
 
 void args_init(int argc, char ** argv);
-void cmd_help();
+void cmd_help(void);
 void getentirecommandline(int argc, char * argv[]);
-void fillheader();
-void show_header();
-void cmd_tree_show();
+void fillheader(void);
+void show_header(void);
+void cmd_tree_show(void);
+int args_getdouble2(char * arg, double * a, double * b);
+void cmd_lca_left(void);
+void cmd_root(void);
+void cmd_extract_subtree(int which);
+void cmd_extract_ltips(void);
+void cmd_extract_rtips(void);
+void cmd_extract_tips(void);
+void cmd_identical(void);
+void cmd_make_binary(void);
 
 /* functions in parse_ntree.y */
 
@@ -227,6 +256,8 @@ utree_t ** utree_tipstring_nodes(utree_t * root,
                                  char * tipstring,
                                  unsigned int * tiplist_count);
 
+int utree_query_branch_lengths(utree_t * root, double * outbuffer, int count);
+
 /* functions in rtree.c */
 
 void rtree_show_ascii(FILE * stream, rtree_t * tree);
@@ -260,6 +291,10 @@ rtree_t ** rtree_tiplist_complement(rtree_t * root,
 int rtree_traverse_postorder(rtree_t * root,
                              int (*cbtrav)(rtree_t *),
                              rtree_t ** outbuffer);
+
+int rtree_query_branch_lengths(rtree_t * root, double * outbuffer);
+
+double rtree_longest_path(rtree_t * root);
 
 /* functions in parse_rtree.y */
 
@@ -297,3 +332,30 @@ void cmd_subtree_short(void);
 
 /* functions in info.c */
 void cmd_info(void);
+
+/* functions in stat.c */
+
+void stats(double * values, int count, 
+           double * min, double * max, 
+           double * mean, double * median, 
+           double * var, double * stdev);
+
+/* functions in create.c */
+
+void cmd_randomtree_binary(void);
+
+/* functions in dist.c */
+
+double rnd_uniform(double min, double max);
+
+/* functions in bd.c */
+
+void cmd_simulate_bd(void);
+
+/* functions in labels.c */
+
+char ** parse_labels(const char * filename, int * count);
+
+/* functions in attach.c */
+
+void cmd_attach_tree(void);

@@ -61,12 +61,14 @@ static void prune_taxa(rtree_t ** root,
       {
         grandparent->right = temp;
       }
+      temp->length += parent->length;
       temp->parent = grandparent;
     }
     else
     {
       temp->parent = NULL;
-      temp->length = 0;
+      /* the next line will zero-out the root branch (origin) */
+      /* temp->length = 0; */
       *root = temp;
     }
     free(parent);

@@ -21,6 +21,67 @@
 
 #include "newick-tools.h"
 
+int ntree_tipcount(ntree_t * node)
+{
+  int i;
+  int count = 0;
+
+  if (!node) return 0;
+  if (!node->children_count == 0) return 1;
+
+  for (i=0; i<node->children_count; ++i)
+    count += ntree_tipcount(node->children[i]);
+
+  return count;
+}
+
+static void ntree_query_tipnodes_recursive(ntree_t * node,
+                                           ntree_t ** node_list,
+                                           int * index) 
+{
+  int i;
+  if (!node) return;
+
+  if (!node->children_count)
+  {
+    node_list[*index] = node;
+    *index = *index + 1;
+    return;
+  }
+
+  for (i=0; i<node->children_count; ++i)
+    ntree_query_tipnodes_recursive(node->children[i], node_list, index);
+}
+
+
+ntree_t ** ntree_query_tipnodes(ntree_t * node, int * count)
+{
+  int i;
+  ntree_t ** node_list;
+
+  if (!node) return 0;
+
+  *count = 0;
+
+  /* the passed node is a tip */
+  if (!node->children_count)
+  {
+    node_list = (ntree_t **)xmalloc(sizeof(ntree_t *));
+    node_list[*count] = node;
+    *count = 1;
+  }
+
+  /* count number of tips and allocate memory */
+  int tipcount = ntree_tipcount(node);
+  node_list = (ntree_t **)xmalloc(tipcount*sizeof(ntree_t *));
+
+  /* traverse all subtrees fill the array */
+  for (i=0; i<node->children_count; ++i)
+    ntree_query_tipnodes_recursive(node->children[i], node_list, count);
+
+  return node_list;
+}
+
 static void ntree_node_count_recursive(ntree_t * root,
                                        int * inner_count,
                                        int * tip_count,
@@ -88,6 +149,102 @@ void ntree_node_count(ntree_t * root,
   }
 }
 
+static rtree_t * resolve_random(ntree_t * node)
+{
+  int i;
+  rtree_t * rtree;
+  double length = 0;
+
+  while (node->children_count == 1)
+  {
+    length += node->length;
+    node = node->children[0];
+  }
+  length += node->length;
+
+  /* allocate node */
+  rtree = (rtree_t *)xmalloc(sizeof(rtree_t));
+  rtree->mark   = 0;
+  rtree->color  = NULL;
+  rtree->data   = NULL;
+  rtree->label  = (node->label) ? xstrdup(node->label) : NULL;
+  rtree->length = length;
+
+
+  if (node->children_count == 0)
+  {
+    rtree->left   = NULL;
+    rtree->right  = NULL;
+    rtree->leaves = 1;
+  }
+  else if (node->children_count == 2)
+  {
+    rtree->left   = resolve_random(node->children[0]);
+    rtree->right  = resolve_random(node->children[1]);
+    rtree->leaves = rtree->left->leaves + rtree->right->leaves;
+
+    rtree->left->parent  = rtree;
+    rtree->right->parent = rtree;
+  }
+  else
+  {
+    /* allocate array to hold resolved subtrees of the children of node */
+    rtree_t ** children = (rtree_t **)xmalloc(node->children_count *
+                                              sizeof(rtree_t *));
+
+    /* resolve all children */
+    for (i=0; i < node->children_count; ++i)
+      children[i] = resolve_random(node->children[i]);
+
+    /* randomly resolve current node */
+    i = node->children_count;
+    while (i != 2)
+    {
+      /* select two children such that r1 < r2 */
+      int r1 = (rand() % i);
+      int r2 = (rand() % i);
+      if (r1 == r2)
+        r2 = (r1 == i-1) ? r2-1 : r2+1;
+      if (r1 > r2) SWAP(r1,r2);
+
+      /* create a new node */
+      rtree_t * new = (rtree_t *)xmalloc(sizeof(rtree_t));
+      new->left   = children[r1];
+      new->right  = children[r2];
+      new->leaves = new->left->leaves + new->right->leaves;
+      new->length = 0;
+      new->label  = NULL;
+      new->mark   = 0;
+      new->color  = NULL;
+      new->data   = NULL;
+
+      new->left->parent = new;
+      new->right->parent = new;
+
+      /* update list of children with new inner node and remove old
+         invalid children */
+      children[r1] = new;
+      if (r2 != i-1)
+        children[r2] = children[i-1];
+
+      --i;
+    }
+
+    /* now we have two children */
+    rtree->left   = children[0];
+    rtree->right  = children[1];
+    rtree->leaves = rtree->left->leaves + rtree->right->leaves;
+
+    rtree->left->parent  = rtree;
+    rtree->right->parent = rtree;
+
+    free(children);
+  }
+
+  return rtree;
+
+}
+
 static rtree_t * ntree_to_rtree_recursive(ntree_t ** nodes, int count)
 {
   rtree_t * rtree;
@@ -109,9 +266,10 @@ static rtree_t * ntree_to_rtree_recursive(ntree_t ** nodes, int count)
     rtree->length = node->length + length;
     rtree->color = NULL;
     rtree->mark = 0;
+    rtree->data = NULL;
 
     /* caterpillar subtree */
-    if (node->children == 0)
+    if (node->children == NULL)
     {
       rtree->left = NULL;
       rtree->right = NULL;
@@ -135,6 +293,7 @@ static rtree_t * ntree_to_rtree_recursive(ntree_t ** nodes, int count)
     rtree->label = NULL;
     rtree->mark = 0;
     rtree->color = NULL;
+    rtree->data = NULL;
 
     rtree->left = ntree_to_rtree_recursive(nodes,1);
     rtree->right = ntree_to_rtree_recursive(nodes+1,count-1);
@@ -149,6 +308,16 @@ static rtree_t * ntree_to_rtree_recursive(ntree_t ** nodes, int count)
 rtree_t * ntree_to_rtree(ntree_t * root)
 {
   rtree_t * rtree;
+
+  /* we want to resolve randomly */
+  if (!opt_resolve_ladder)
+  {
+    rtree = resolve_random(root);
+    rtree->parent = NULL;
+    return rtree;
+  }
+
+  /* otherwise we want to resolve the multifurcations in a ladder way */
 
   while (root->children_count == 1)
     root = root->children[0];
@@ -172,6 +341,7 @@ rtree_t * ntree_to_rtree(ntree_t * root)
 
   rtree->color = NULL;
   rtree->mark = 0;
+  rtree->data = NULL;
 
   return rtree;
 }

@@ -118,7 +118,9 @@ static void rtree_set_xcoord(rtree_t * node)
     coord->x += ((coord_t *)(node->parent->data))->x;
   else
   {
-    coord->x = opt_svg_marginleft;
+    /* TODO: added */
+    //coord->x = opt_svg_marginleft;
+    coord->x += opt_svg_marginleft;
   }
 
   if (!node->left) 
@@ -284,7 +286,9 @@ static void svg_rtree_plot(rtree_t * node)
     //    rx = ((coord_t *)(node->right->data))->x;
     ry = ((coord_t *)(node->right->data))->y;
     y = (ly + ry) / 2.0;
-    x = opt_svg_marginleft;
+    /* TODO: modified */
+    x = opt_svg_marginleft + node->length*scaler;
+    //x = opt_svg_marginleft;
 
 
     svg_line(x,
@@ -293,6 +297,9 @@ static void svg_rtree_plot(rtree_t * node)
              ry,
              stroke_width);
     svg_circle(x,y,opt_svg_inner_radius);
+
+    /* draw tail */
+    svg_line(opt_svg_marginleft,y,x,y, stroke_width);
   }
 }
 
@@ -302,7 +309,7 @@ static void utree_scaler_init(utree_t * root, int tip_count)
   double label_len;
   int i;
 
-  utree_t ** node_list = (utree_t **)malloc(tip_count*sizeof(utree_t *));
+  utree_t ** node_list = (utree_t **)xmalloc(tip_count*sizeof(utree_t *));
 
   utree_query_tipnodes(root, node_list);
 
@@ -354,7 +361,7 @@ static void rtree_scaler_init(rtree_t * root)
   double label_len;
   unsigned int i;
 
-  rtree_t ** node_list = (rtree_t **)malloc((2*root->leaves-1)*sizeof(rtree_t *));
+  rtree_t ** node_list = (rtree_t **)xmalloc((2*root->leaves-1)*sizeof(rtree_t *));
 
   rtree_query_tipnodes(root, node_list);
 
@@ -371,7 +378,8 @@ static void rtree_scaler_init(rtree_t * root)
       node = node->parent;
     }
     /* subtract root length */
-    len -= root->length;
+    /* TODO: commented this */
+    //len -= root->length;
 
     if (len > max_tree_len) 
       max_tree_len = len;

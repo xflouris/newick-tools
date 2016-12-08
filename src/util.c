@@ -69,6 +69,16 @@ void progress_done()
     fprintf(stderr, "  \r%s %.0f%%\n", progress_prompt, 100.0);
 }
 
+void * xcalloc(size_t nmemb, size_t size)
+{
+  void * t = calloc(nmemb, size);
+
+  if (!t)
+    fatal("Unable to allocate enough memory.");
+
+  return t;
+}
+
 void * xmalloc(size_t size)
 {
   const size_t alignment = 16;
@@ -150,9 +160,10 @@ FILE * xopen(const char * filename, const char * mode)
 void shuffle(void * array, size_t n, size_t size)
 {
   size_t i;
-  char tmp[size];
 
   if (n <= 1) return;
+
+  char * tmp = (char *)xmalloc(size);
 
   for (i = 0; i < n; ++i)
   {
@@ -163,4 +174,6 @@ void shuffle(void * array, size_t n, size_t size)
     memcpy(array + j*size, array + i*size, size);
     memcpy(array + i*size, tmp, size);
   }
+
+  free(tmp);
 }

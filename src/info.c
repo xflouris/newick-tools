@@ -52,6 +52,23 @@ static void rtree_info(rtree_t * root)
                  min_inner_degree,
                  max_inner_degree);
 
+  double * outbuffer = (double *)xmalloc((tip_count+inner_count-1) * 
+                                          sizeof(double));
+
+  int count = rtree_query_branch_lengths(root, outbuffer);
+
+  double min,max,mean,median,var,stdev;
+  stats(outbuffer,count,&min,&max,&mean,&median,&var,&stdev);
+  printf("Min. branch length: %f\n", min);
+  printf("Max. branch length: %f\n", max);
+  printf("Mean branch length: %f\n", mean);
+  printf("Median branch length: %f\n", median);
+  printf("Variance branch length: %f\n", var);
+  printf("Standard deviation branch length: %f\n", stdev);
+  printf("Longest lineage: %f\n", rtree_longest_path(root));
+
+  free(outbuffer);
+
 }
 
 static void utree_info(utree_t * node, int tip_count)
@@ -65,6 +82,20 @@ static void utree_info(utree_t * node, int tip_count)
                  min_inner_degree,
                  max_inner_degree);
 
+  double * outbuffer = (double *)xmalloc((tip_count+inner_count-1) * 
+                                          sizeof(double));
+
+  int count = utree_query_branch_lengths(node, outbuffer, tip_count+inner_count );
+  double min,max,mean,median,var,stdev;
+  stats(outbuffer,count,&min,&max,&mean,&median,&var,&stdev);
+  printf("Min. branch length: %f\n", min);
+  printf("Max. branch length: %f\n", max);
+  printf("Mean branch length: %f\n", mean);
+  printf("Median branch length: %f\n", median);
+  printf("Variance branch length: %f\n", var);
+  printf("Standard deviation branch length: %f\n", stdev);
+
+  free(outbuffer);
 }
 
 static void ntree_info(ntree_t * root)

@@ -31,6 +31,8 @@ void rtree_destroy(rtree_t * root)
 
   rtree_destroy(root->left);
   rtree_destroy(root->right);
+  if (root->data)
+    free(root->data);
 
   free(root->label);
   free(root);
@@ -72,7 +74,7 @@ input: OPAR subtree COMMA subtree CPAR optional_label optional_length SEMICOLON
   tree->left   = $2;
   tree->right  = $4;
   tree->label  = $6;
-  tree->length = $7 ? atof($7) : 0;
+  tree->length = $7 ? atof($7) : 1;
   tree->leaves = $2->leaves + $4->leaves;
   tree->parent = NULL;
   tree->mark   = 0;
@@ -88,7 +90,7 @@ subtree: OPAR subtree COMMA subtree CPAR optional_label optional_length
   $$->left   = $2;
   $$->right  = $4;
   $$->label  = $6;
-  $$->length = $7 ? atof($7) : 0;
+  $$->length = $7 ? atof($7) : 1;
   $$->leaves = $2->leaves + $4->leaves;
   $$->mark   = 0;
   free($7);
@@ -101,7 +103,7 @@ subtree: OPAR subtree COMMA subtree CPAR optional_label optional_length
 {
   $$ = (rtree_t *)calloc(1, sizeof(rtree_t));
   $$->label  = $1;
-  $$->length = $2 ? atof($2) : 0;
+  $$->length = $2 ? atof($2) : 1;
   $$->left   = NULL;
   $$->right  = NULL;
   $$->leaves = 1;
