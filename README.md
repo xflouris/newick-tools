@@ -2,6 +2,7 @@
 
 [![License](https://img.shields.io/badge/license-AGPL-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.en.html)
 [![Build Status](https://travis-ci.org/xflouris/newick-tools.svg?branch=master)](https://magnum.travis-ci.com/xflouris/newick-tools)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1312910.svg)](https://doi.org/10.5281/zenodo.1312909)
 
 ## Introduction
 
