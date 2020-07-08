@@ -96,26 +96,26 @@ The code is currently licensed under the [GNU Affero General Public License vers
 
 ## Code
 
-    File           | Description
--------------------|----------------
-**newick-tools.c** | Main file handling command-line parameters and executing corresponding parts.
-**Makefile**       | Makefile.
-**lex_rtree.l**    | Lexical analyzer parsing newick rooted trees.
-**lex_utree.l**    | Lexical analyzer parsing newick unrooted trees.
-**lex_ntree.l**    | Lexical analyzer parsing newick n-ary trees.
-**util.c**         | Various common utility functions.
-**arch.c**         | Architecture specific code (Mac/Linux).
-**rtree.c**        | Rooted tree manipulation functions.
-**utree.c**        | Unrooted tree manipulation functions.
-**ntree.c**        | n-ary tree manipulation functions.
-**parse_rtree.y**  | Functions for parsing rooted trees in newick format.
-**parse_utree.y**  | Functions for parsing unrooted trees in newick format.
-**parse_ntree.y**  | Functions for parsing n-ary trees in newick format.
-**lca_utree.c**    | Naive LCA computation in unrooted trees.
-**lca_tips.c**     | Compute tips leading to an LCA node.
-**svg.c**          | SVG output routines.
-**prune.c**        | Methods for pruning taxa and inducing subtrees.
-**info.c**         | Functions for showing various tree-related  information.
+|                    File                     |                                  Description                                  |
+|---------------------------------------------|-------------------------------------------------------------------------------|
+|[**``newick-tools.c``**](src/newick-tools.c) | Main file handling command-line parameters and executing corresponding parts. |
+|[**``Makefile``**](src/Makefile)             | Makefile.                                                                     |
+|[**``lex_rtree.l``**](src/lex_rtree.l)       | Lexical analyzer parsing newick rooted trees.                                 |
+|[**``lex_utree.l``**](src/lex_utree.l)       | Lexical analyzer parsing newick unrooted trees.                               |
+|[**``lex_ntree.l``**](src/lex_ntree.l)       | Lexical analyzer parsing newick n-ary trees.                                  |
+|[**``util.c``**](src/util.c)                 | Various common utility functions.                                             |
+|[**``arch.c``**](src/arch.c)                 | Architecture specific code (Mac/Linux).                                       |
+|[**``rtree.c``**](src/rtree.c)               | Rooted tree manipulation functions.                                           |
+|[**``utree.c``**](src/utree.c)               | Unrooted tree manipulation functions.                                         |
+|[**``ntree.c``**](src/ntree.c)               | n-ary tree manipulation functions.                                            |
+|[**``parse_rtree.y``**](src/parse_rtree.y)   | Functions for parsing rooted trees in newick format.                          |
+|[**``parse_utree.y``**](src/parse_utree.y)   | Functions for parsing unrooted trees in newick format.                        |
+|[**``parse_ntree.y``**](src/parse_ntree.y)   | Functions for parsing n-ary trees in newick format.                           |
+|[**``lca_utree.c``**](src/lca_utree.c)       | Naive LCA computation in unrooted trees.                                      |
+|[**``lca_tips.c``**](src/lca_tips.c)         | Compute tips leading to an LCA node.                                          |
+|[**``svg.c``**](src/svg.c)                   | SVG output routines.                                                          |
+|[**``prune.c``**](src/prune.c)               | Methods for pruning taxa and inducing subtrees.                               |
+|[**``info.c``**](src/info.c)                 | Functions for showing various tree-related  information.                      |
 
 ## Bugs
 
