@@ -26,7 +26,6 @@ double scaler = 0;
 long stroke_width = 3;
 
 long legend_spacing = 10;
-double opt_svg_legend_ratio = 0.3;
 
 FILE * svg_fp;
 
